@@ -1,7 +1,42 @@
+import os
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 from typing import Optional
 from pydentic import BaseModel, Field
 
+# ENVIRONMENT CONFIGURATION
+
+# Configuration from environment variables
+PROXMOX_HOST = os.getenv("PROXMOX_HOST")
+PROXMOX_TOKEN = os.getenv("PROXMOX_TOKEN")
+PROXMOX_NODE = os.getenv("PROXMOX_NODE")
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+ABUSEIPDB_KEY = os.getenv("ABUSEIPDB_KEY")
+VIRUSTOTAL_KEY = os.getenv("VIRUSTOTAL_KEY")
+
+# For testing and development, we can enable a demo mode that simulates responses without making real API calls.
+DEMO_MODE = os.getenv("DEMO_MODE", "false").lower() == "true"
+
+
+# APPLICATION SETUP
+
+app = FastAPI(
+    title="SOAR API",
+    description="API for Security Orchestration, Automation, and Response (SOAR) system to manage alerts and automate responses.",
+    version="1.0.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# DATAMODEL DEFINITIONS
 
 # Details of a new alert from the monitoring agent.
 class AlertCreate(BaseModel):
@@ -37,3 +72,16 @@ class ThreatIntelResult(BaseModel):
     total_threat_score: int = 0
     recomendation: str = ""
 
+# STORAGE SIMULATION
+
+alerts_db: list[dict] = []
+blocked_ips_db: list[dict] = []
+vm_statuses: dict[int, dict] = {
+    111: {
+        "vm_id": 111,
+        "vm_name": "ProjektStudia",
+        "vlan": 10,
+        "status": "production",
+        "last_incident_at": None,
+    },
+}
